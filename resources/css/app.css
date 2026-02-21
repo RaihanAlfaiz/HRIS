@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans:
+        "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --color-primary-50: #eff6ff;
+    --color-primary-100: #dbeafe;
+    --color-primary-200: #bfdbfe;
+    --color-primary-300: #93c5fd;
+    --color-primary-400: #60a5fa;
+    --color-primary-500: #3b82f6;
+    --color-primary-600: #2563eb;
+    --color-primary-700: #1d4ed8;
+    --color-primary-800: #1e40af;
+    --color-primary-900: #1e3a8a;
+    --color-primary-950: #172554;
+    --color-sidebar: #0f172a;
+    --color-sidebar-hover: #1e293b;
+    --color-sidebar-active: #1e3a5f;
+}
+
+/* ══════════════════════════════════════════
+   Tom Select — Custom Styling
+   Matches our rounded design system
+   ══════════════════════════════════════════ */
+
+.ts-wrapper.single .ts-control {
+    border-radius: 0.75rem !important;
+    border-color: #d1d5db !important;
+    background-color: rgb(249 250 251 / 0.5) !important;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5rem !important;
+    min-height: 2.625rem !important;
+    box-shadow: none !important;
+    transition: all 0.15s ease;
+}
+
+.ts-wrapper.single .ts-control:hover {
+    border-color: #9ca3af !important;
+}
+
+.ts-wrapper.single.focus .ts-control {
+    border-color: #3b82f6 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.15) !important;
+    outline: none !important;
+}
+
+.ts-wrapper .ts-control > input {
+    font-size: 0.875rem !important;
+}
+
+.ts-wrapper .ts-control > input::placeholder {
+    color: #9ca3af !important;
+}
+
+.ts-dropdown {
+    border-radius: 0.75rem !important;
+    border-color: #e5e7eb !important;
+    box-shadow:
+        0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+    margin-top: 4px !important;
+    overflow: hidden;
+}
+
+.ts-dropdown .ts-dropdown-content {
+    max-height: 220px;
+    padding: 0.25rem;
+}
+
+.ts-dropdown .option {
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.5rem !important;
+    font-size: 0.875rem !important;
+    color: #374151 !important;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active {
+    background-color: #eff6ff !important;
+    color: #2563eb !important;
+}
+
+.ts-dropdown .option.selected {
+    background-color: #dbeafe !important;
+    color: #1d4ed8 !important;
+}
+
+.ts-dropdown .no-results {
+    padding: 0.75rem !important;
+    font-size: 0.875rem !important;
+    color: #9ca3af !important;
+    text-align: center;
+}
+
+/* Dropdown arrow (▼) — use a proper chevron SVG */
+.ts-wrapper.single .ts-control {
+    padding-right: 2.5rem !important;
+}
+
+.ts-wrapper.single .ts-control::after {
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    top: 50% !important;
+    right: 0.75rem !important;
+    width: 1rem !important;
+    height: 1rem !important;
+    margin-top: -0.5rem !important;
+    border: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%239ca3af'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    pointer-events: none !important;
+    transition: transform 0.2s ease;
+}
+
+.ts-wrapper.single.dropdown-active .ts-control::after {
+    transform: rotate(180deg) !important;
+}
+
+.ts-wrapper.single.focus .ts-control::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%233b82f6'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
+}
+
+/* Remove default input styling inside tom-select */
+.ts-wrapper.single .ts-control .item {
+    color: #111827 !important;
+    font-size: 0.875rem !important;
+}
+
+/* Placeholder text */
+.ts-control > input::placeholder,
+.ts-wrapper .ts-control > .item.placeholder {
+    color: #9ca3af !important;
+    opacity: 1 !important;
+}
+
+/* Clear button (×) — position before the arrow */
+.ts-wrapper .clear-button {
+    background: transparent !important;
+    color: #9ca3af !important;
+    font-size: 1.1rem !important;
+    right: 2rem !important;
+    transition: color 0.15s ease;
+}
+
+.ts-wrapper .clear-button:hover {
+    color: #ef4444 !important;
+}
+
+/* Dropdown overlay z-index (rendered on body) */
+.ts-dropdown[data-popper-placement] {
+    z-index: 9999 !important;
+}
