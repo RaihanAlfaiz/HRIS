@@ -9,5 +9,5 @@
         </a>
     </x-slot:headerActions>
 
-    @include('employees._form', ['employee' => $employee, 'departments' => $departments])
+    @include('employees._form', ['employee' => $employee, 'departments' => $departments, 'sites' => $sites])
 </x-layouts.app>

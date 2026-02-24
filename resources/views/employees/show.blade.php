@@ -75,15 +75,85 @@
                     </div>
                     <div class="mt-3 sm:mt-0 sm:pb-1">
                         <h2 class="text-2xl font-bold text-gray-900">{{ $employee->full_name }}</h2>
-                        <p class="mt-1 text-sm text-gray-500">{{ $employee->position }} · {{ $employee->department?->name }}</p>
+                        <p class="mt-1 text-sm text-gray-500">{{ $employee->position }} · {{ $employee->department?->name }}@if($employee->site) · <span class="text-primary-600">{{ $employee->site->name }}</span>@endif</p>
                     </div>
-                    <div class="mt-3 sm:ml-auto sm:mt-0 sm:pb-1">
+                    <div class="mt-3 flex items-center gap-2 sm:ml-auto sm:mt-0 sm:pb-1">
                         <span class="inline-flex rounded-full px-3 py-1 text-sm font-medium
                             {{ $employee->employment_status === 'Permanent' ? 'bg-emerald-100 text-emerald-700' :
                                ($employee->employment_status === 'Contract' ? 'bg-amber-100 text-amber-700' :
                                ($employee->employment_status === 'Probation' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700')) }}">
                             {{ $employee->employment_status }}
                         </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ═══ TENURE SPOTLIGHT ═══ --}}
+        @php
+            $joinDate = $employee->join_date;
+            $totalMonths = $joinDate ? (int) $joinDate->diffInMonths(now()) : 0;
+            $tenureColor = match(true) {
+                $totalMonths >= 60 => ['from-emerald-500 to-teal-500', 'bg-emerald-100 text-emerald-700', 'Veteran'],
+                $totalMonths >= 24 => ['from-blue-500 to-indigo-500', 'bg-blue-100 text-blue-700', 'Berpengalaman'],
+                $totalMonths >= 6  => ['from-violet-500 to-purple-500', 'bg-violet-100 text-violet-700', 'Berkembang'],
+                default            => ['from-amber-500 to-orange-500', 'bg-amber-100 text-amber-700', 'Baru Bergabung'],
+            };
+        @endphp
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {{-- Tenure Card --}}
+            <div class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-gradient-to-br {{ $tenureColor[0] }} opacity-10"></div>
+                <div class="relative flex items-center gap-4">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $tenureColor[0] }} text-white shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xl font-bold text-gray-900">{{ $employee->tenure }}</p>
+                        <div class="mt-0.5 flex items-center gap-2">
+                            <span class="text-xs text-gray-500">Masa Kerja</span>
+                            <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold {{ $tenureColor[1] }}">{{ $tenureColor[2] }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Join Date Card --}}
+            <div class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-primary-500 opacity-10"></div>
+                <div class="relative flex items-center gap-4">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xl font-bold text-gray-900">{{ $employee->join_date->format('d M Y') }}</p>
+                        <p class="mt-0.5 text-xs text-gray-500">Tanggal Bergabung</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Active Contract Card --}}
+            <div class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="absolute -right-3 -top-3 h-20 w-20 rounded-full bg-amber-500 opacity-10"></div>
+                <div class="relative flex items-center gap-4">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        @php $activeContract = $employee->activeContract; @endphp
+                        @if($activeContract)
+                            <p class="text-xl font-bold {{ $activeContract->is_expiring_soon ? 'text-amber-600' : 'text-gray-900' }}">{{ $activeContract->remaining_days }} hari</p>
+                            <p class="mt-0.5 text-xs text-gray-500">Sisa Kontrak Aktif</p>
+                        @else
+                            <p class="text-xl font-bold text-gray-400">—</p>
+                            <p class="mt-0.5 text-xs text-gray-500">Tidak ada kontrak aktif</p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -103,9 +173,11 @@
                         'NIP' => $employee->nip,
                         'Nama Lengkap' => $employee->full_name,
                         'Departemen' => $employee->department?->name,
+                        'Site / Penempatan' => $employee->site ? $employee->site->code . ' — ' . $employee->site->name : '—',
                         'Jabatan' => $employee->position,
                         'Status Kepegawaian' => $employee->employment_status,
                         'Tanggal Bergabung' => $employee->join_date->format('d F Y'),
+                        'Lama Bekerja' => $employee->tenure,
                     ] as $label => $value)
                         <div class="flex items-start gap-4 rounded-lg px-3 py-2 odd:bg-gray-50/50">
                             <dt class="w-40 shrink-0 text-sm text-gray-500">{{ $label }}</dt>
@@ -345,6 +417,214 @@
                     </svg>
                     <p class="mt-3 text-sm font-medium text-gray-500">Belum ada dokumen</p>
                     <p class="mt-1 text-xs text-gray-400">Klik "Upload Dokumen" untuk menambahkan file</p>
+                </div>
+            @endif
+        </div>
+
+        {{-- ═══ RIWAYAT KONTRAK ═══ --}}
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" x-data="{ showContractForm: false }">
+            <div class="flex items-center justify-between">
+                <h3 class="flex items-center gap-2 text-base font-semibold text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Riwayat Kontrak (PKWT)
+                </h3>
+                <button @click="showContractForm = !showContractForm" type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 transition hover:bg-amber-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Tambah Kontrak
+                </button>
+            </div>
+
+            {{-- Add contract form --}}
+            <div x-show="showContractForm" x-cloak x-transition class="mt-4 rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+                <form method="POST" action="{{ route('employee-contracts.store', $employee) }}" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    @csrf
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tipe Kontrak</label>
+                        <select name="contract_type" required class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none">
+                            <option value="PKWT">PKWT</option>
+                            <option value="PKWTT">PKWTT</option>
+                            <option value="Addendum">Addendum</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nomor Kontrak</label>
+                        <input type="text" name="contract_number" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none" placeholder="SPK/001/2024">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                        <input type="date" name="start_date" required class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tanggal Berakhir</label>
+                        <input type="date" name="end_date" required class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Catatan</label>
+                        <textarea name="notes" rows="2" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:outline-none" placeholder="Opsional..."></textarea>
+                    </div>
+                    <div class="sm:col-span-2 flex justify-end gap-2">
+                        <button type="button" @click="showContractForm = false" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</button>
+                        <button type="submit" class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700">Simpan Kontrak</button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- Contract list --}}
+            @if($employee->contracts->count() > 0)
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200 bg-gray-50/80">
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Tipe</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">No. Kontrak</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Periode</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Sisa Hari</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                                <th class="px-4 py-2.5"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($employee->contracts as $contract)
+                                <tr class="hover:bg-gray-50/50">
+                                    <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">{{ $contract->contract_type }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-600">{{ $contract->contract_number ?? '—' }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-600">{{ $contract->start_date->format('d M Y') }} — {{ $contract->end_date->format('d M Y') }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3">
+                                        @if($contract->is_expired)
+                                            <span class="text-sm font-medium text-red-600">Berakhir</span>
+                                        @else
+                                            <span class="text-sm font-semibold {{ $contract->remaining_days <= 30 ? 'text-amber-600' : 'text-gray-900' }}">
+                                                {{ $contract->remaining_days }} hari
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-nowrap px-4 py-3">
+                                        @if($contract->is_expired)
+                                            <span class="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">Expired</span>
+                                        @elseif($contract->is_expiring_soon)
+                                            <span class="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Segera Habis</span>
+                                        @else
+                                            <span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Aktif</span>
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-right">
+                                        <form method="POST" action="{{ route('employee-contracts.destroy', [$employee, $contract]) }}" onsubmit="return confirm('Hapus kontrak ini?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600" title="Hapus">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="mt-4 rounded-xl border-2 border-dashed border-gray-200 py-8 text-center">
+                    <p class="text-sm text-gray-500">Belum ada data kontrak</p>
+                </div>
+            @endif
+        </div>
+
+        {{-- ═══ KPI / PENILAIAN KINERJA ═══ --}}
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" x-data="{ showKpiForm: false }">
+            <div class="flex items-center justify-between">
+                <h3 class="flex items-center gap-2 text-base font-semibold text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Penilaian KPI
+                </h3>
+                <button @click="showKpiForm = !showKpiForm" type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 transition hover:bg-violet-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Tambah KPI
+                </button>
+            </div>
+
+            {{-- Add KPI form --}}
+            <div x-show="showKpiForm" x-cloak x-transition class="mt-4 rounded-xl border border-violet-200 bg-violet-50/50 p-4">
+                <form method="POST" action="{{ route('employee-kpis.store', $employee) }}" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    @csrf
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Periode</label>
+                        <input type="text" name="period" required placeholder="2024-Q1, 2024-H1, 2024" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Score (0-100)</label>
+                        <input type="number" name="score" required min="0" max="100" step="0.01" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Rating</label>
+                        <select name="rating" required class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-none">
+                            <option value="Excellent">Excellent</option>
+                            <option value="Good" selected>Good</option>
+                            <option value="Average">Average</option>
+                            <option value="Below Average">Below Average</option>
+                            <option value="Poor">Poor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Dinilai Oleh</label>
+                        <input type="text" name="reviewed_by" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-none" placeholder="Nama penilai">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Catatan</label>
+                        <textarea name="notes" rows="2" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-none" placeholder="Opsional..."></textarea>
+                    </div>
+                    <div class="sm:col-span-2 flex justify-end gap-2">
+                        <button type="button" @click="showKpiForm = false" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</button>
+                        <button type="submit" class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700">Simpan KPI</button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- KPI list --}}
+            @if($employee->kpis->count() > 0)
+                <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach($employee->kpis as $kpi)
+                        <div class="rounded-xl border border-gray-200 p-4 transition hover:border-violet-200 hover:shadow-sm">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900">{{ $kpi->period }}</p>
+                                    <p class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($kpi->score, 1) }}</p>
+                                </div>
+                                <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {{ $kpi->rating_color }}">
+                                    {{ $kpi->rating }}
+                                </span>
+                            </div>
+                            @if($kpi->reviewed_by)
+                                <p class="mt-2 text-xs text-gray-400">Dinilai oleh: {{ $kpi->reviewed_by }}</p>
+                            @endif
+                            @if($kpi->notes)
+                                <p class="mt-1 text-xs text-gray-500 line-clamp-2">{{ $kpi->notes }}</p>
+                            @endif
+                            <div class="mt-3 flex justify-end">
+                                <form method="POST" action="{{ route('employee-kpis.destroy', [$employee, $kpi]) }}" onsubmit="return confirm('Hapus KPI ini?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="rounded-lg p-1 text-gray-400 hover:bg-red-50 hover:text-red-600" title="Hapus">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="mt-4 rounded-xl border-2 border-dashed border-gray-200 py-8 text-center">
+                    <p class="text-sm text-gray-500">Belum ada data KPI</p>
                 </div>
             @endif
         </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Site;
 use App\Models\EmployeeContact;
 use App\Models\EmployeeFinancial;
 use App\Models\EmployeeProfile;
@@ -62,8 +63,9 @@ class EmployeeController extends Controller
     public function create()
     {
         $departments = Department::orderBy('name')->get();
+        $sites = Site::orderBy('name')->get();
 
-        return view('employees.create', compact('departments'));
+        return view('employees.create', compact('departments', 'sites'));
     }
 
     /**
@@ -99,7 +101,11 @@ class EmployeeController extends Controller
      */
     public function show(Employee $employee)
     {
-        $employee->load(['department', 'profile', 'contact', 'documents', 'financial']);
+        $employee->load([
+            'department', 'site', 'profile', 'contact', 'documents', 'financial',
+            'contracts' => fn($q) => $q->orderByDesc('end_date'),
+            'kpis' => fn($q) => $q->orderByDesc('period'),
+        ]);
 
         return view('employees.show', compact('employee'));
     }
@@ -111,8 +117,9 @@ class EmployeeController extends Controller
     {
         $employee->load(['profile', 'contact', 'financial']);
         $departments = Department::orderBy('name')->get();
+        $sites = Site::orderBy('name')->get();
 
-        return view('employees.edit', compact('employee', 'departments'));
+        return view('employees.edit', compact('employee', 'departments', 'sites'));
     }
 
     /**
@@ -190,6 +197,7 @@ class EmployeeController extends Controller
             'nip'                => ['required', 'string', 'max:50', Rule::unique('employees', 'nip')->ignore($employeeId)],
             'full_name'          => ['required', 'string', 'max:150'],
             'department_id'      => ['required', 'exists:departments,id'],
+            'site_id'            => ['nullable', 'exists:sites,id'],
             'position'           => ['required', 'string', 'max:100'],
             'employment_status'  => ['required', 'string', 'max:50'],
             'join_date'          => ['required', 'date'],
@@ -223,7 +231,7 @@ class EmployeeController extends Controller
 
         return [
             'employee' => array_intersect_key($data, array_flip([
-                'department_id', 'nip', 'full_name', 'position', 'employment_status', 'join_date',
+                'department_id', 'site_id', 'nip', 'full_name', 'position', 'employment_status', 'join_date',
             ])),
             'profile' => array_filter(array_intersect_key($data, array_flip([
                 'nik_ktp', 'place_of_birth', 'date_of_birth', 'gender', 'religion',

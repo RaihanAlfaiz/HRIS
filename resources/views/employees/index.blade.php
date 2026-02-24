@@ -17,7 +17,8 @@
     </x-slot:headerActions>
 
     {{-- ═══ SEARCH & FILTERS ═══ --}}
-    <form method="GET" action="{{ route('employees.index') }}" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm" x-data>
+    <form method="GET" action="{{ route('employees.index') }}" id="filter-form"
+          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
             {{-- Search --}}
             <div class="flex-1">
@@ -35,7 +36,8 @@
             <div class="sm:w-56">
                 <label for="department_id" class="block text-sm font-medium text-gray-700 mb-1.5">Departemen</label>
                 <select id="department_id" name="department_id" data-placeholder="Semua Departemen"
-                        class="select-search w-full">
+                        class="select-search select-filter w-full">
+                    <option value=""></option>
                     @foreach($departments as $dept)
                         <option value="{{ $dept->id }}" {{ request('department_id') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
                     @endforeach
@@ -46,19 +48,16 @@
             <div class="sm:w-44">
                 <label for="employment_status" class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
                 <select id="employment_status" name="employment_status" data-placeholder="Semua Status"
-                        class="select-search w-full">
+                        class="select-search select-filter w-full">
+                    <option value=""></option>
                     @foreach($statuses as $status)
                         <option value="{{ $status }}" {{ request('employment_status') == $status ? 'selected' : '' }}>{{ $status }}</option>
                     @endforeach
                 </select>
             </div>
 
-            {{-- Buttons --}}
+            {{-- Reset only --}}
             <div class="flex gap-2">
-                <button type="submit"
-                        class="rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-primary-700 active:scale-[0.98]">
-                    Filter
-                </button>
                 <a href="{{ route('employees.index') }}"
                    class="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-50">
                     Reset
@@ -103,6 +102,7 @@
                             </th>
                         @endforeach
                         <th class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Departemen</th>
+                        <th class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Masa Kerja</th>
                         <th class="px-5 py-3"></th>
                     </tr>
                 </thead>
@@ -126,6 +126,23 @@
                             </td>
                             <td class="whitespace-nowrap px-5 py-3.5 text-gray-600">{{ $employee->join_date->format('d M Y') }}</td>
                             <td class="whitespace-nowrap px-5 py-3.5 text-gray-500">{{ $employee->department?->name }}</td>
+                            <td class="whitespace-nowrap px-5 py-3.5">
+                                @php
+                                    $tenureMonths = $employee->tenure_months;
+                                    $tenureBadge = match(true) {
+                                        $tenureMonths >= 60 => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+                                        $tenureMonths >= 24 => 'bg-blue-50 text-blue-700 ring-blue-200',
+                                        $tenureMonths >= 6  => 'bg-violet-50 text-violet-700 ring-violet-200',
+                                        default             => 'bg-amber-50 text-amber-700 ring-amber-200',
+                                    };
+                                @endphp
+                                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset {{ $tenureBadge }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    {{ $employee->tenure }}
+                                </span>
+                            </td>
                             <td class="whitespace-nowrap px-5 py-3.5 text-right">
                                 <div class="flex items-center justify-end gap-1">
                                     <a href="{{ route('employees.show', $employee) }}" class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-primary-600" title="Lihat">
@@ -151,7 +168,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-5 py-12 text-center">
+                            <td colspan="8" class="px-5 py-12 text-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>

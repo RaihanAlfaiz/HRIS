@@ -1,10 +1,12 @@
 {{-- Reusable employee form partial (used by both create and edit) --}}
-@props(['employee' => null, 'departments'])
 
 @php
-    $isEdit = $employee !== null;
-    $profile = $isEdit ? $employee->profile : null;
-    $contact = $isEdit ? $employee->contact : null;
+    $employee  = $employee ?? null;
+    $departments = $departments ?? collect();
+    $sites     = $sites ?? collect();
+    $isEdit    = $employee !== null;
+    $profile   = $isEdit ? $employee->profile : null;
+    $contact   = $isEdit ? $employee->contact : null;
     $financial = $isEdit ? $employee->financial : null;
 @endphp
 
@@ -39,6 +41,7 @@
                 <label for="department_id" class="block text-sm font-medium text-gray-700">Departemen <span class="text-red-500">*</span></label>
                 <select id="department_id" name="department_id" required data-placeholder="Pilih Departemen"
                         class="select-search mt-1.5 block w-full">
+                    <option value=""></option>
                     @foreach($departments as $dept)
                         <option value="{{ $dept->id }}" {{ old('department_id', $employee?->department_id) == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
                     @endforeach
@@ -55,11 +58,23 @@
                 <label for="employment_status" class="block text-sm font-medium text-gray-700">Status Kepegawaian <span class="text-red-500">*</span></label>
                 <select id="employment_status" name="employment_status" required data-placeholder="Pilih Status"
                         class="select-search mt-1.5 block w-full">
+                    <option value=""></option>
                     @foreach(['Permanent', 'Contract', 'Probation', 'Internship'] as $status)
                         <option value="{{ $status }}" {{ old('employment_status', $employee?->employment_status) === $status ? 'selected' : '' }}>{{ $status }}</option>
                     @endforeach
                 </select>
                 @error('employment_status') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label for="site_id" class="block text-sm font-medium text-gray-700">Site / Area Penempatan</label>
+                <select id="site_id" name="site_id" data-placeholder="Pilih Site"
+                        class="select-search mt-1.5 block w-full">
+                    <option value=""></option>
+                    @foreach($sites as $site)
+                        <option value="{{ $site->id }}" {{ old('site_id', $employee?->site_id) == $site->id ? 'selected' : '' }}>{{ $site->code }} — {{ $site->name }}</option>
+                    @endforeach
+                </select>
+                @error('site_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label for="join_date" class="block text-sm font-medium text-gray-700">Tanggal Bergabung <span class="text-red-500">*</span></label>
@@ -99,6 +114,7 @@
                 <label for="gender" class="block text-sm font-medium text-gray-700">Jenis Kelamin</label>
                 <select id="gender" name="gender" data-placeholder="Pilih"
                         class="select-search mt-1.5 block w-full">
+                    <option value=""></option>
                     @foreach(['Laki-laki', 'Perempuan'] as $g)
                         <option value="{{ $g }}" {{ old('gender', $profile?->gender) === $g ? 'selected' : '' }}>{{ $g }}</option>
                     @endforeach
@@ -108,6 +124,7 @@
                 <label for="religion" class="block text-sm font-medium text-gray-700">Agama</label>
                 <select id="religion" name="religion" data-placeholder="Pilih"
                         class="select-search mt-1.5 block w-full">
+                    <option value=""></option>
                     @foreach(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'] as $r)
                         <option value="{{ $r }}" {{ old('religion', $profile?->religion) === $r ? 'selected' : '' }}>{{ $r }}</option>
                     @endforeach
@@ -117,6 +134,7 @@
                 <label for="marital_status" class="block text-sm font-medium text-gray-700">Status Pernikahan</label>
                 <select id="marital_status" name="marital_status" data-placeholder="Pilih"
                         class="select-search mt-1.5 block w-full">
+                    <option value=""></option>
                     @foreach(['Belum Menikah', 'Menikah', 'Cerai'] as $m)
                         <option value="{{ $m }}" {{ old('marital_status', $profile?->marital_status) === $m ? 'selected' : '' }}>{{ $m }}</option>
                     @endforeach
@@ -126,6 +144,7 @@
                 <label for="blood_type" class="block text-sm font-medium text-gray-700">Golongan Darah</label>
                 <select id="blood_type" name="blood_type" data-placeholder="Pilih"
                         class="select-search mt-1.5 block w-full">
+                    <option value=""></option>
                     @foreach(['A', 'B', 'AB', 'O'] as $bt)
                         <option value="{{ $bt }}" {{ old('blood_type', $profile?->blood_type) === $bt ? 'selected' : '' }}>{{ $bt }}</option>
                     @endforeach
@@ -183,6 +202,7 @@
                 <label for="emergency_contact_relation" class="block text-sm font-medium text-gray-700">Hubungan Darurat</label>
                 <select id="emergency_contact_relation" name="emergency_contact_relation" data-placeholder="Pilih"
                         class="select-search mt-1.5 block w-full">
+                    <option value=""></option>
                     @foreach(['Suami', 'Istri', 'Orang Tua', 'Saudara', 'Anak', 'Lainnya'] as $rel)
                         <option value="{{ $rel }}" {{ old('emergency_contact_relation', $contact?->emergency_contact_relation) === $rel ? 'selected' : '' }}>{{ $rel }}</option>
                     @endforeach
@@ -219,6 +239,7 @@
                 <label for="bank_name" class="block text-sm font-medium text-gray-700">Nama Bank</label>
                 <select id="bank_name" name="bank_name" data-placeholder="Pilih Bank"
                         class="select-search mt-1.5 block w-full">
+                    <option value=""></option>
                     @foreach(['BCA', 'BNI', 'BRI', 'Mandiri', 'CIMB Niaga', 'Bank Danamon', 'BTN', 'Permata Bank', 'Bank Muamalat', 'Bank Syariah Indonesia'] as $bank)
                         <option value="{{ $bank }}" {{ old('bank_name', $financial?->bank_name) === $bank ? 'selected' : '' }}>{{ $bank }}</option>
                     @endforeach

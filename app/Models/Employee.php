@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,13 +14,9 @@ class Employee extends Model
 {
     use HasFactory, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'department_id',
+        'site_id',
         'nip',
         'full_name',
         'position',
@@ -27,11 +24,6 @@ class Employee extends Model
         'join_date',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -40,51 +32,96 @@ class Employee extends Model
     }
 
     // ──────────────────────────────────────────────
-    // Relationships
+    // Accessors
     // ──────────────────────────────────────────────
 
     /**
-     * Get the department this employee belongs to.
-     * DBML: department_id bigint [ref: > departments.id]
+     * Get employee tenure (lama bekerja) — auto-calculated from join_date.
+     * Returns human-readable string like "2 tahun 3 bulan".
      */
+    public function getTenureAttribute(): string
+    {
+        $joinDate = $this->join_date;
+        if (!$joinDate) {
+            return '—';
+        }
+
+        $now = Carbon::now();
+        $years  = (int) $joinDate->diffInYears($now);
+        $months = (int) $joinDate->copy()->addYears($years)->diffInMonths($now);
+        $days   = (int) $joinDate->copy()->addYears($years)->addMonths($months)->diffInDays($now);
+
+        $parts = [];
+        if ($years > 0) {
+            $parts[] = "{$years} tahun";
+        }
+        if ($months > 0) {
+            $parts[] = "{$months} bulan";
+        }
+        if (empty($parts) || ($years === 0 && $months === 0)) {
+            $parts[] = "{$days} hari";
+        }
+
+        return implode(' ', $parts);
+    }
+
+    /**
+     * Get tenure in total months (for sorting/comparison).
+     */
+    public function getTenureMonthsAttribute(): int
+    {
+        return $this->join_date ? (int) $this->join_date->diffInMonths(now()) : 0;
+    }
+
+    /**
+     * Get the active (latest) contract for this employee.
+     */
+    public function getActiveContractAttribute(): ?EmployeeContract
+    {
+        return $this->contracts()->orderByDesc('end_date')->first();
+    }
+
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }
 
-    /**
-     * Get the employee's personal profile (1-to-1).
-     * DBML: employee_id bigint [ref: - employees.id, unique]
-     */
+    public function site(): BelongsTo
+    {
+        return $this->belongsTo(Site::class);
+    }
+
     public function profile(): HasOne
     {
         return $this->hasOne(EmployeeProfile::class);
     }
 
-    /**
-     * Get the employee's contact information (1-to-1).
-     * DBML: employee_id bigint [ref: - employees.id, unique]
-     */
     public function contact(): HasOne
     {
         return $this->hasOne(EmployeeContact::class);
     }
 
-    /**
-     * Get the employee's documents (1-to-Many).
-     * DBML: employee_id bigint [ref: > employees.id]
-     */
     public function documents(): HasMany
     {
         return $this->hasMany(EmployeeDocument::class);
     }
 
-    /**
-     * Get the employee's financial information (1-to-1).
-     * DBML: employee_id bigint [ref: - employees.id, unique]
-     */
     public function financial(): HasOne
     {
         return $this->hasOne(EmployeeFinancial::class);
+    }
+
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(EmployeeContract::class);
+    }
+
+    public function kpis(): HasMany
+    {
+        return $this->hasMany(EmployeeKpi::class);
     }
 }
