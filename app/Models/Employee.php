@@ -15,6 +15,7 @@ class Employee extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'user_id',
         'department_id',
         'site_id',
         'nip',
@@ -22,6 +23,7 @@ class Employee extends Model
         'position',
         'employment_status',
         'join_date',
+        'default_shift_id',
     ];
 
     protected function casts(): array
@@ -85,6 +87,11 @@ class Employee extends Model
     // Relationships
     // ──────────────────────────────────────────────
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
@@ -93,6 +100,11 @@ class Employee extends Model
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
+    }
+
+    public function defaultShift(): BelongsTo
+    {
+        return $this->belongsTo(WorkShift::class, 'default_shift_id');
     }
 
     public function profile(): HasOne
@@ -123,5 +135,30 @@ class Employee extends Model
     public function kpis(): HasMany
     {
         return $this->hasMany(EmployeeKpi::class);
+    }
+
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function leaves(): HasMany
+    {
+        return $this->hasMany(Leave::class);
+    }
+
+    public function leaveBalances(): HasMany
+    {
+        return $this->hasMany(LeaveBalance::class);
+    }
+
+    public function payrolls(): HasMany
+    {
+        return $this->hasMany(Payroll::class);
+    }
+
+    public function histories(): HasMany
+    {
+        return $this->hasMany(EmployeeHistory::class);
     }
 }

@@ -114,6 +114,115 @@
         </div>
     @endif
 
+    {{-- ═══════════ TODAY'S ATTENDANCE ═══════════ --}}
+    <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-emerald-800">{{ $todayPresent }}</p>
+                    <p class="text-xs text-emerald-600">Hadir Hari Ini</p>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-amber-800">{{ $todayLate }}</p>
+                    <p class="text-xs text-amber-600">Terlambat</p>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-red-800">{{ max(0, $todayAbsent) }}</p>
+                    <p class="text-xs text-red-600">Belum Absen</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════ PENDING LEAVES & ANNOUNCEMENTS ROW ═══════════ --}}
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {{-- Pending Leaves --}}
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-gray-900">
+                    Cuti Menunggu Persetujuan
+                    @if($pendingLeavesCount > 0)
+                        <span class="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white">{{ $pendingLeavesCount }}</span>
+                    @endif
+                </h3>
+                <a href="{{ route('leaves.index', ['status' => 'pending']) }}" class="text-xs text-primary-600 hover:underline">Lihat semua →</a>
+            </div>
+            @forelse($pendingLeaves as $leave)
+                <div class="flex items-center gap-3 py-2.5 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-xs font-bold text-amber-600">
+                        {{ strtoupper(substr($leave->employee->full_name, 0, 2)) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ $leave->employee->full_name }}</p>
+                        <p class="text-xs text-gray-400">{{ $leave->type_label }} · {{ $leave->days }} hari</p>
+                    </div>
+                    <span class="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Pending</span>
+                </div>
+            @empty
+                <p class="text-sm text-gray-400 text-center py-6">Tidak ada pengajuan cuti yang pending.</p>
+            @endforelse
+        </div>
+
+        {{-- Announcements --}}
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-gray-900">Pengumuman Aktif</h3>
+                <a href="{{ route('announcements.index') }}" class="text-xs text-primary-600 hover:underline">Lihat semua →</a>
+            </div>
+            @forelse($announcements as $ann)
+                <div class="py-3 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold {{ $ann->priority_color }}">{{ $ann->priority_label }}</span>
+                        <span class="text-xs text-gray-400">{{ $ann->created_at->diffForHumans() }}</span>
+                    </div>
+                    <h4 class="text-sm font-medium text-gray-900">{{ $ann->title }}</h4>
+                    <p class="mt-1 text-xs text-gray-500 line-clamp-2">{{ $ann->content }}</p>
+                </div>
+            @empty
+                <p class="text-sm text-gray-400 text-center py-6">Tidak ada pengumuman aktif.</p>
+            @endforelse
+        </div>
+    </div>
+
+    {{-- Birthday Reminders --}}
+    @if($birthdayEmployees->count() > 0)
+    <div class="mt-6 rounded-2xl border border-pink-200 bg-gradient-to-r from-pink-50 to-purple-50 p-5 shadow-sm">
+        <h3 class="flex items-center gap-2 text-base font-semibold text-pink-800">
+            🎂 Ulang Tahun Bulan Ini
+        </h3>
+        <div class="mt-3 flex flex-wrap gap-3">
+            @foreach($birthdayEmployees as $bday)
+                <div class="flex items-center gap-2 rounded-full bg-white/70 border border-pink-100 px-3 py-1.5">
+                    <div class="flex h-7 w-7 items-center justify-center rounded-full bg-pink-100 text-xs font-bold text-pink-600">
+                        {{ strtoupper(substr($bday->full_name, 0, 2)) }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ $bday->full_name }}</p>
+                        <p class="text-[10px] text-gray-400">{{ $bday->profile?->date_of_birth?->format('d M') }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- ═══════════ BOTTOM GRID ═══════════ --}}
     <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
 

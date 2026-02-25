@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
+use App\Models\Attendance;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\EmployeeContract;
+use App\Models\Leave;
 use App\Models\Site;
 
 class DashboardController extends Controller
@@ -45,6 +48,31 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        // Today's attendance summary
+        $todayDate = now()->toDateString();
+        $todayPresent = Attendance::where('date', $todayDate)->whereIn('status', ['present', 'late'])->count();
+        $todayLate    = Attendance::where('date', $todayDate)->where('status', 'late')->count();
+        $todayAbsent  = $totalEmployees - Attendance::where('date', $todayDate)->count();
+
+        // Pending leaves
+        $pendingLeaves = Leave::with('employee')
+            ->where('status', 'pending')
+            ->latest()
+            ->limit(5)
+            ->get();
+        $pendingLeavesCount = Leave::where('status', 'pending')->count();
+
+        // Active announcements
+        $announcements = Announcement::active()
+            ->latest()
+            ->limit(3)
+            ->get();
+
+        // Birthday this month
+        $birthdayEmployees = Employee::whereHas('profile', function ($q) {
+            $q->whereMonth('date_of_birth', now()->month);
+        })->with('profile')->limit(5)->get();
+
         return view('dashboard.index', compact(
             'totalEmployees',
             'totalDepartments',
@@ -54,6 +82,13 @@ class DashboardController extends Controller
             'siteCounts',
             'recentEmployees',
             'expiringContracts',
+            'todayPresent',
+            'todayLate',
+            'todayAbsent',
+            'pendingLeaves',
+            'pendingLeavesCount',
+            'announcements',
+            'birthdayEmployees',
         ));
     }
 }
