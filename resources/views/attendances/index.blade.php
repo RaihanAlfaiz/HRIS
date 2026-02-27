@@ -103,7 +103,7 @@
                                     <div x-show="cameraError" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-800" x-cloak>
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                         <p class="text-gray-400 text-sm">Kamera tidak tersedia</p>
-                                        <p class="text-gray-500 text-xs mt-1">Absen tetap bisa tanpa foto</p>
+                                        <p class="text-gray-500 text-xs mt-1">Harap izinkan akses kamera di browser Anda</p>
                                     </div>
                                 </div>
 
@@ -138,9 +138,11 @@
                                     <input type="hidden" name="latitude" x-bind:value="latitude">
                                     <input type="hidden" name="longitude" x-bind:value="longitude">
                                     <button type="submit"
-                                            class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 px-10 py-4 text-lg font-bold text-white hover:from-blue-600 hover:to-blue-700 transition shadow-lg shadow-blue-500/30 transform hover:scale-[1.02] active:scale-95">
+                                            x-bind:disabled="!capturedPhoto"
+                                            x-bind:class="!capturedPhoto ? 'opacity-50 cursor-not-allowed saturate-50' : 'hover:scale-[1.02] active:scale-95 hover:from-blue-600 hover:to-blue-700'"
+                                            class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 px-10 py-4 text-lg font-bold text-white transition shadow-lg shadow-blue-500/30 transform">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                                        CHECK-OUT
+                                        <span x-text="!capturedPhoto ? 'Ambil Foto Dulu' : 'CHECK-OUT'"></span>
                                     </button>
                                 </form>
                             </div>
@@ -189,7 +191,7 @@
                                 <div x-show="cameraError" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-800" x-cloak>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                     <p class="text-gray-400 text-sm">Kamera tidak tersedia</p>
-                                    <p class="text-gray-500 text-xs mt-1">Absen tetap bisa tanpa foto</p>
+                                    <p class="text-gray-500 text-xs mt-1">Harap izinkan akses kamera di browser Anda</p>
                                 </div>
                             </div>
 
@@ -221,6 +223,16 @@
                                     @endforeach
                                 </select>
                             </div>
+                            
+                            {{-- Tipe Lokasi Kerja --}}
+                            <div class="max-w-lg mx-auto mt-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Lokasi (Work From)</label>
+                                <select x-model="workFrom" name="work_from" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:outline-none">
+                                    <option value="WFO">WFO (Work From Office)</option>
+                                    <option value="WFH">WFH (Work From Home)</option>
+                                    <option value="Lainnya">Lainnya (Dinas / Luar Kota)</option>
+                                </select>
+                            </div>
 
                             {{-- Location info --}}
                             <div class="flex items-center justify-center gap-2 text-sm">
@@ -236,10 +248,13 @@
                                 <input type="hidden" name="photo" x-bind:value="capturedPhoto">
                                 <input type="hidden" name="latitude" x-bind:value="latitude">
                                 <input type="hidden" name="longitude" x-bind:value="longitude">
+                                <input type="hidden" name="work_from" x-bind:value="workFrom">
                                 <button type="submit"
-                                        class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-10 py-4 text-lg font-bold text-white hover:from-emerald-600 hover:to-emerald-700 transition shadow-lg shadow-emerald-500/30 transform hover:scale-[1.02] active:scale-95">
+                                        x-bind:disabled="!capturedPhoto"
+                                        x-bind:class="!capturedPhoto ? 'opacity-50 cursor-not-allowed saturate-50' : 'hover:scale-[1.02] active:scale-95 hover:from-emerald-600 hover:to-emerald-700'"
+                                        class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-10 py-4 text-lg font-bold text-white transition shadow-lg shadow-emerald-500/30 transform">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                                    CHECK-IN SEKARANG
+                                    <span x-text="!capturedPhoto ? 'Ambil Foto Dulu' : 'CHECK-IN SEKARANG'"></span>
                                 </button>
                             </form>
                         </div>
@@ -349,6 +364,7 @@
                                 <th class="px-4 py-3 font-semibold text-gray-600 text-center">Check-Out</th>
                                 <th class="px-4 py-3 font-semibold text-gray-600 text-center">Telat</th>
                                 <th class="px-4 py-3 font-semibold text-gray-600 text-center">Jam Kerja</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600 text-center">TipeLokasi</th>
                                 <th class="px-4 py-3 font-semibold text-gray-600 text-center">Status</th>
                                 <th class="px-4 py-3 font-semibold text-gray-600 text-center">Aksi</th>
                             </tr>
@@ -356,7 +372,7 @@
                         <tbody class="divide-y divide-gray-50">
                             @forelse($employees as $i => $employee)
                             @php $att = $employee->attendances->first(); @endphp
-                            <tr class="hover:bg-gray-50/50 transition"
+                            <tr class="group hover:bg-gray-50/50 transition"
                                 x-show="!search || '{{ strtolower($employee->full_name) }}'.includes(search.toLowerCase())"
                                 x-cloak>
                                 <td class="px-4 py-3 text-gray-400 text-xs">{{ $i + 1 }}</td>
@@ -429,6 +445,15 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-center">
+                                    @if($att && $att->work_from)
+                                        <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                            {{ $att->work_from }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-300">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-center">
                                     @if($att)
                                         <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold {{ $att->status_color }}">
                                             {{ $att->status_icon }} {{ $att->status_label }}
@@ -438,27 +463,32 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-center">
-                                    @if($att)
-                                    <div x-data="{ open: false }" class="relative inline-block">
-                                        <button @click="open = !open" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
-                                        </button>
-                                        <div x-show="open" @click.away="open = false" x-transition
-                                             class="absolute right-0 z-20 mt-1 w-40 rounded-xl bg-white shadow-lg border border-gray-100 py-1">
-                                            @foreach(['present' => 'Hadir', 'late' => 'Terlambat', 'absent' => 'Alpa', 'sick' => 'Sakit', 'leave' => 'Cuti', 'holiday' => 'Libur'] as $val => $lbl)
-                                            <form method="POST" action="{{ route('attendances.update-status', $att) }}">
-                                                @csrf @method('PUT')
-                                                <input type="hidden" name="status" value="{{ $val }}">
-                                                <button type="submit" class="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-50 transition {{ $att->status === $val ? 'font-semibold text-primary-600' : 'text-gray-700' }}">
-                                                    {{ $lbl }}
-                                                </button>
-                                            </form>
-                                            @endforeach
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <div class="flex items-center gap-1.5 opacity-0 transition group-hover:opacity-100">
+
                                         </div>
+                                        @if($att)
+                                        <div x-data="{ open: false }" class="relative inline-block">
+                                            <button @click="open = !open" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                                            </button>
+                                            <div x-show="open" @click.away="open = false" x-transition
+                                                 class="absolute right-0 z-20 mt-1 w-40 rounded-xl bg-white shadow-lg border border-gray-100 py-1">
+                                                @foreach(['present' => 'Hadir', 'late' => 'Terlambat', 'absent' => 'Alpa', 'sick' => 'Sakit', 'leave' => 'Cuti', 'holiday' => 'Libur'] as $val => $lbl)
+                                                <form method="POST" action="{{ route('attendances.update-status', $att) }}">
+                                                    @csrf @method('PUT')
+                                                    <input type="hidden" name="status" value="{{ $val }}">
+                                                    <button type="submit" class="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-50 transition {{ $att->status === $val ? 'font-semibold text-primary-600' : 'text-gray-700' }}">
+                                                        {{ $lbl }}
+                                                    </button>
+                                                </form>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        @else
+                                            <span class="text-xs text-gray-300">—</span>
+                                        @endif
                                     </div>
-                                    @else
-                                        <span class="text-xs text-gray-300">—</span>
-                                    @endif
                                 </td>
                             </tr>
                             @empty
@@ -518,15 +548,16 @@
     function selfAttendance() {
         return {
             clock: '--:--',
-            clockDate: '',
-            clockSeconds: '00',
-            capturedPhoto: '',
-            cameraError: false,
+            clockSeconds: '--',
+            clockDate: 'Memuat tanggal...',
             cameraStarted: false,
-            latitude: '',
-            longitude: '',
+            capturedPhoto: null,
             stream: null,
-            shiftId: '{{ $myEmployee?->default_shift_id ?? $shifts->firstWhere("is_default", true)?->id ?? "" }}',
+            cameraError: false,
+            shiftId: '{{ $myEmployee->default_shift_id ?? ($shifts->first()?->id ?? '') }}',
+            workFrom: 'WFO',
+            latitude: null,
+            longitude: null,
 
             startClock() {
                 const tick = () => {

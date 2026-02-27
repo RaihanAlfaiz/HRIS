@@ -78,10 +78,18 @@ class User extends Authenticatable
         }
 
         if ($model instanceof \App\Models\Employee) {
-            abort_if($model->site_id !== $this->site_id, 403, 'Akses ditolak: Anda tidak memiliki akses ke data di site ini.');
+            if ($this->isViewer()) {
+                abort_if($model->id !== $this->employee?->id, 403, 'Akses ditolak: Anda hanya dapat mengakses data Anda sendiri.');
+            } else {
+                abort_if($model->site_id !== $this->site_id, 403, 'Akses ditolak: Anda tidak memiliki akses ke data di site ini.');
+            }
         } elseif (isset($model->employee)) {
             // For related models: Attendance, Leave, Payroll, Document, Contract, etc.
-            abort_if($model->employee->site_id !== $this->site_id, 403, 'Akses ditolak: Anda tidak memiliki akses ke data di site ini.');
+            if ($this->isViewer()) {
+                abort_if($model->employee_id !== $this->employee?->id, 403, 'Akses ditolak: Anda hanya dapat mengakses data Anda sendiri.');
+            } else {
+                abort_if($model->employee->site_id !== $this->site_id, 403, 'Akses ditolak: Anda tidak memiliki akses ke data di site ini.');
+            }
         }
 
         return true;
@@ -98,11 +106,16 @@ class User extends Authenticatable
     {
         $query = Employee::query();
 
-        if (!$this->isAdmin()) {
-            $query->where('site_id', $this->site_id);
+        if ($this->isAdmin()) {
+            return $query;
         }
 
-        return $query;
+        if ($this->isHr()) {
+            return $query->where('site_id', $this->site_id);
+        }
+
+        // Viewer (employee) only sees themselves
+        return $query->where('id', $this->employee?->id ?? -1);
     }
 
     /**
@@ -112,11 +125,15 @@ class User extends Authenticatable
     {
         $query = Attendance::query();
 
-        if (!$this->isAdmin()) {
-            $query->whereHas('employee', fn($q) => $q->where('site_id', $this->site_id));
+        if ($this->isAdmin()) {
+            return $query;
         }
 
-        return $query;
+        if ($this->isHr()) {
+            return $query->whereHas('employee', fn($q) => $q->where('site_id', $this->site_id));
+        }
+
+        return $query->where('employee_id', $this->employee?->id ?? -1);
     }
 
     /**
@@ -126,11 +143,15 @@ class User extends Authenticatable
     {
         $query = Leave::query();
 
-        if (!$this->isAdmin()) {
-            $query->whereHas('employee', fn($q) => $q->where('site_id', $this->site_id));
+        if ($this->isAdmin()) {
+            return $query;
         }
 
-        return $query;
+        if ($this->isHr()) {
+            return $query->whereHas('employee', fn($q) => $q->where('site_id', $this->site_id));
+        }
+
+        return $query->where('employee_id', $this->employee?->id ?? -1);
     }
 
     /**
@@ -140,11 +161,15 @@ class User extends Authenticatable
     {
         $query = Payroll::query();
 
-        if (!$this->isAdmin()) {
-            $query->whereHas('employee', fn($q) => $q->where('site_id', $this->site_id));
+        if ($this->isAdmin()) {
+            return $query;
         }
 
-        return $query;
+        if ($this->isHr()) {
+            return $query->whereHas('employee', fn($q) => $q->where('site_id', $this->site_id));
+        }
+
+        return $query->where('employee_id', $this->employee?->id ?? -1);
     }
 
     // ── Relationships ──

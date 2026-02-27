@@ -15,7 +15,7 @@ class Attendance extends Model
         'check_in', 'check_out',
         'late_minutes', 'early_leave_minutes', 'work_hours_decimal',
         'overtime_minutes', 'overtime_status', 'overtime_approved_by',
-        'status', 'notes',
+        'status', 'notes', 'work_from',
         'check_in_photo', 'check_out_photo',
         'check_in_ip', 'check_out_ip',
         'lat_in', 'lng_in', 'lat_out', 'lng_out',

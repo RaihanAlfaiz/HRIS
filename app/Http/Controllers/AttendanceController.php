@@ -66,6 +66,7 @@ class AttendanceController extends Controller
             'photo'       => 'nullable|string', // base64 image
             'latitude'    => 'nullable|numeric',
             'longitude'   => 'nullable|numeric',
+            'work_from'   => 'required|in:WFO,WFH,Lainnya',
         ]);
 
         $employee = Employee::findOrFail($request->employee_id);
@@ -75,6 +76,34 @@ class AttendanceController extends Controller
         $existing = Attendance::where('employee_id', $employee->id)->where('date', $today)->first();
         if ($existing) {
             return back()->with('error', 'Karyawan sudah check-in hari ini.');
+        }
+
+        // Validate Location (Radius) if WFO
+        $site = $employee->site;
+        if ($request->work_from === 'WFO' && $site && $site->latitude && $site->longitude) {
+            if (!$request->latitude || !$request->longitude) {
+                return back()->with('error', 'Lokasi GPS (Latitude/Longitude) diperlukan untuk absen WFO. Pastikan izin lokasi browser aktif.');
+            }
+
+            // Haversine formula to calculate distance in meters
+            $earthRadius = 6371000; // in meters
+            $latFrom = deg2rad((float) $site->latitude);
+            $lonFrom = deg2rad((float) $site->longitude);
+            $latTo = deg2rad((float) $request->latitude);
+            $lonTo = deg2rad((float) $request->longitude);
+
+            $latDelta = $latTo - $latFrom;
+            $lonDelta = $lonTo - $lonFrom;
+
+            $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) + cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+            $distance = $angle * $earthRadius;
+
+            $allowedRadius = $site->radius ?? 1000; // default 1000m if null
+
+            if ($distance > $allowedRadius) {
+                $distanceFormatted = number_format($distance, 0, ',', '.');
+                return back()->with('error', "Anda berada di luar jangkauan kantor (Jarak Anda: {$distanceFormatted}m, Maksimal: {$allowedRadius}m). Absen ditolak.");
+            }
         }
 
         // Determine shift
@@ -115,6 +144,7 @@ class AttendanceController extends Controller
             'check_in_ip'       => $request->ip(),
             'lat_in'            => $request->latitude,
             'lng_in'            => $request->longitude,
+            'work_from'         => $request->work_from,
         ]);
 
         $message = 'Check-in berhasil pada ' . now()->format('H:i');

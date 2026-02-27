@@ -247,6 +247,7 @@
         </div>
 
         {{-- Site distribution --}}
+        @if(auth()->user()->isAdmin())
         <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h3 class="text-base font-semibold text-gray-900">Distribusi per Site</h3>
             <p class="mt-1 text-sm text-gray-500">Karyawan aktif per area</p>
@@ -267,6 +268,7 @@
                 @endforelse
             </div>
         </div>
+        @endif
 
         {{-- Recent employees --}}
         <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

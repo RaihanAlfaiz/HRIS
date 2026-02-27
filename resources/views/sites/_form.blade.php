@@ -51,6 +51,31 @@
                           placeholder="Jl. Sudirman No. 1, RT 01/RW 02...">{{ old('address', $site?->address) }}</textarea>
                 @error('address') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
+            
+            <div class="sm:col-span-2 pt-4 mt-2 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div>
+                    <label for="latitude" class="block text-sm font-medium text-gray-700">Latitude (Garis Lintang)</label>
+                    <input type="text" id="latitude" name="latitude" value="{{ old('latitude', $site?->latitude) }}"
+                           class="mt-1.5 block w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
+                           placeholder="-6.200000">
+                    @error('latitude') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="longitude" class="block text-sm font-medium text-gray-700">Longitude (Garis Bujur)</label>
+                    <input type="text" id="longitude" name="longitude" value="{{ old('longitude', $site?->longitude) }}"
+                           class="mt-1.5 block w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
+                           placeholder="106.816666">
+                    @error('longitude') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="radius" class="block text-sm font-medium text-gray-700">Radius Ceklok (Meter) <span class="text-red-500">*</span></label>
+                    <input type="number" id="radius" name="radius" value="{{ old('radius', $site?->radius ?? 1000) }}" required min="10"
+                           class="mt-1.5 block w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
+                           placeholder="1000">
+                    <p class="mt-1 text-xs text-gray-500">Jarak maksimal karyawan bisa absen WFO dari titik lokasi.</p>
+                    @error('radius') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+            </div>
         </div>
     </div>
 

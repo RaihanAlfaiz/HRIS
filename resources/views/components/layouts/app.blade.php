@@ -57,6 +57,7 @@
                         Dashboard
                     </a>
 
+                    @if(auth()->user()->hasRole('admin', 'hr'))
                     <p class="px-3 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">HR Management</p>
                     <a href="{{ route('employees.index') }}"
                        class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
@@ -82,6 +83,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         Riwayat
                     </a>
+                    @endif
 
                     <p class="px-3 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">Operasional</p>
                     <div x-data="{ open: {{ request()->routeIs('attendances.*') ? 'true' : 'false' }} }">
@@ -94,10 +96,12 @@
                         </button>
                         <div x-show="open" x-collapse x-cloak class="ml-8 mt-0.5 flex flex-col gap-0.5 border-l border-white/10 pl-3">
                             <a href="{{ route('attendances.index') }}" class="rounded-lg px-3 py-1.5 text-xs font-medium transition {{ request()->routeIs('attendances.index') ? 'text-primary-300' : 'text-gray-400 hover:text-white' }}">Harian</a>
-                            <a href="{{ route('attendances.recap') }}" class="rounded-lg px-3 py-1.5 text-xs font-medium transition {{ request()->routeIs('attendances.recap') ? 'text-primary-300' : 'text-gray-400 hover:text-white' }}">Rekap Bulanan</a>
-                            <a href="{{ route('attendances.overtime') }}" class="rounded-lg px-3 py-1.5 text-xs font-medium transition {{ request()->routeIs('attendances.overtime') ? 'text-primary-300' : 'text-gray-400 hover:text-white' }}">Lembur</a>
-                            <a href="{{ route('attendances.corrections') }}" class="rounded-lg px-3 py-1.5 text-xs font-medium transition {{ request()->routeIs('attendances.corrections') ? 'text-primary-300' : 'text-gray-400 hover:text-white' }}">Koreksi</a>
-                            <a href="{{ route('attendances.shifts') }}" class="rounded-lg px-3 py-1.5 text-xs font-medium transition {{ request()->routeIs('attendances.shifts') ? 'text-primary-300' : 'text-gray-400 hover:text-white' }}">Shift Kerja</a>
+                            @if(auth()->user()->hasRole('admin', 'hr'))
+                                <a href="{{ route('attendances.recap') }}" class="rounded-lg px-3 py-1.5 text-xs font-medium transition {{ request()->routeIs('attendances.recap') ? 'text-primary-300' : 'text-gray-400 hover:text-white' }}">Rekap Bulanan</a>
+                                <a href="{{ route('attendances.overtime') }}" class="rounded-lg px-3 py-1.5 text-xs font-medium transition {{ request()->routeIs('attendances.overtime') ? 'text-primary-300' : 'text-gray-400 hover:text-white' }}">Lembur</a>
+                                <a href="{{ route('attendances.corrections') }}" class="rounded-lg px-3 py-1.5 text-xs font-medium transition {{ request()->routeIs('attendances.corrections') ? 'text-primary-300' : 'text-gray-400 hover:text-white' }}">Koreksi</a>
+                                <a href="{{ route('attendances.shifts') }}" class="rounded-lg px-3 py-1.5 text-xs font-medium transition {{ request()->routeIs('attendances.shifts') ? 'text-primary-300' : 'text-gray-400 hover:text-white' }}">Shift Kerja</a>
+                            @endif
                         </div>
                     </div>
                     <a href="{{ route('leaves.index') }}"
@@ -119,6 +123,8 @@
                         Payroll
                     </a>
 
+                    @if(auth()->user()->hasRole('admin', 'hr'))
+
                     <p class="px-3 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-500">Komunikasi</p>
                     <a href="{{ route('announcements.index') }}"
                        class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
@@ -134,6 +140,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         Manajemen Akun
                     </a>
+                    @endif
 
                     {{-- Extra bottom padding so last item doesn't hide behind fade --}}
                     <div class="h-4 shrink-0"></div>

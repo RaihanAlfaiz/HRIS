@@ -16,6 +16,9 @@ class Site extends Model
         'address',
         'city',
         'province',
+        'latitude',
+        'longitude',
+        'radius',
     ];
 
     /**

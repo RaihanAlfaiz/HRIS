@@ -39,10 +39,13 @@ class SiteController extends Controller
     {
         $validated = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
-            'code'     => ['required', 'string', 'max:20', 'unique:sites,code'],
-            'address'  => ['nullable', 'string'],
-            'city'     => ['nullable', 'string', 'max:100'],
-            'province' => ['nullable', 'string', 'max:100'],
+            'code'      => ['required', 'string', 'max:20', 'unique:sites,code'],
+            'address'   => ['nullable', 'string'],
+            'city'      => ['nullable', 'string', 'max:100'],
+            'province'  => ['nullable', 'string', 'max:100'],
+            'latitude'  => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'radius'    => ['required', 'integer', 'min:10', 'max:50000'],
         ]);
 
         Site::create($validated);
@@ -90,10 +93,13 @@ class SiteController extends Controller
     {
         $validated = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
-            'code'     => ['required', 'string', 'max:20', 'unique:sites,code,' . $site->id],
-            'address'  => ['nullable', 'string'],
-            'city'     => ['nullable', 'string', 'max:100'],
-            'province' => ['nullable', 'string', 'max:100'],
+            'code'      => ['required', 'string', 'max:20', 'unique:sites,code,' . $site->id],
+            'address'   => ['nullable', 'string'],
+            'city'      => ['nullable', 'string', 'max:100'],
+            'province'  => ['nullable', 'string', 'max:100'],
+            'latitude'  => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'radius'    => ['required', 'integer', 'min:10', 'max:50000'],
         ]);
 
         $site->update($validated);
