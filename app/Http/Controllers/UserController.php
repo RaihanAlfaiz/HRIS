@@ -15,7 +15,14 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with('employee')->orderBy('username')->get();
+        $user = auth()->user();
+        $query = User::with(['employee', 'site'])->orderBy('username');
+
+        if (!$user->isAdmin()) {
+            $query->where('site_id', $user->site_id);
+        }
+
+        $users = $query->get();
         return view('users.index', compact('users'));
     }
 
@@ -24,8 +31,11 @@ class UserController extends Controller
      */
     public function create()
     {
-        $employees = Employee::whereNull('user_id')->orderBy('full_name')->get();
-        return view('users.create', compact('employees'));
+        $user = auth()->user();
+        $employees = $user->scopedEmployeeQuery()->whereNull('user_id')->orderBy('full_name')->get();
+        $sites = \App\Models\Site::orderBy('name')->get();
+
+        return view('users.create', compact('employees', 'sites'));
     }
 
     /**
@@ -38,6 +48,7 @@ class UserController extends Controller
             'name'        => 'required|string|max:100',
             'password'    => ['required', 'confirmed', Password::min(6)],
             'role'        => 'required|in:admin,hr,viewer',
+            'site_id'     => 'nullable|exists:sites,id',
             'employee_id' => 'nullable|exists:employees,id',
         ]);
 
@@ -46,6 +57,7 @@ class UserController extends Controller
             'name'     => $validated['name'],
             'password' => Hash::make($validated['password']),
             'role'     => $validated['role'],
+            'site_id'  => auth()->user()->isAdmin() ? $validated['site_id'] : auth()->user()->site_id,
         ]);
 
         // Link to employee if selected
@@ -61,13 +73,21 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        $employees = Employee::where(function ($q) use ($user) {
+        $currentUser = auth()->user();
+
+        // Security check: HR cannot edit users from other sites
+        if (!$currentUser->isAdmin() && $user->site_id !== $currentUser->site_id) {
+            abort(403);
+        }
+
+        $employees = $currentUser->scopedEmployeeQuery()->where(function ($q) use ($user) {
             $q->whereNull('user_id')->orWhere('user_id', $user->id);
         })->orderBy('full_name')->get();
 
+        $sites = \App\Models\Site::orderBy('name')->get();
         $linkedEmployeeId = Employee::where('user_id', $user->id)->value('id');
 
-        return view('users.edit', compact('user', 'employees', 'linkedEmployeeId'));
+        return view('users.edit', compact('user', 'employees', 'sites', 'linkedEmployeeId'));
     }
 
     /**
@@ -80,6 +100,7 @@ class UserController extends Controller
             'name'        => 'required|string|max:100',
             'password'    => ['nullable', 'confirmed', Password::min(6)],
             'role'        => 'required|in:admin,hr,viewer',
+            'site_id'     => 'nullable|exists:sites,id',
             'employee_id' => 'nullable|exists:employees,id',
         ]);
 
@@ -87,6 +108,7 @@ class UserController extends Controller
             'username' => $validated['username'],
             'name'     => $validated['name'],
             'role'     => $validated['role'],
+            'site_id'  => auth()->user()->isAdmin() ? $validated['site_id'] : $user->site_id,
         ]);
 
         if ($validated['password']) {

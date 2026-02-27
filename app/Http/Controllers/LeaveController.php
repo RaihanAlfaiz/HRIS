@@ -11,23 +11,24 @@ class LeaveController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $status = $request->input('status');
-        $query  = Leave::with(['employee.department', 'approver'])->latest();
+        $query  = $user->scopedLeaveQuery()->with(['employee.department', 'approver'])->latest();
 
         if ($status && in_array($status, ['pending', 'approved', 'rejected'])) {
             $query->where('status', $status);
         }
 
         $leaves = $query->paginate(20);
-        $pendingCount  = Leave::where('status', 'pending')->count();
-        $approvedCount = Leave::where('status', 'approved')->count();
+        $pendingCount  = (clone $user->scopedLeaveQuery())->where('status', 'pending')->count();
+        $approvedCount = (clone $user->scopedLeaveQuery())->where('status', 'approved')->count();
 
         return view('leaves.index', compact('leaves', 'pendingCount', 'approvedCount', 'status'));
     }
 
     public function create()
     {
-        $employees = Employee::orderBy('full_name')->get();
+        $employees = auth()->user()->scopedEmployeeQuery()->orderBy('full_name')->get();
         return view('leaves.create', compact('employees'));
     }
 
@@ -54,6 +55,8 @@ class LeaveController extends Controller
 
     public function approve(Leave $leave)
     {
+        auth()->user()->authorizeSiteAccess($leave);
+
         if ($leave->status !== 'pending') {
             return back()->with('error', 'Cuti ini sudah diproses.');
         }
@@ -81,6 +84,8 @@ class LeaveController extends Controller
 
     public function reject(Request $request, Leave $leave)
     {
+        auth()->user()->authorizeSiteAccess($leave);
+
         if ($leave->status !== 'pending') {
             return back()->with('error', 'Cuti ini sudah diproses.');
         }
@@ -108,7 +113,9 @@ class LeaveController extends Controller
         $start = \Carbon\Carbon::parse($month . '-01')->startOfMonth();
         $end   = $start->copy()->endOfMonth();
 
-        $leaves = Leave::with('employee')
+        $user = auth()->user();
+
+        $leaves = $user->scopedLeaveQuery()->with('employee')
             ->where('status', 'approved')
             ->where(function ($q) use ($start, $end) {
                 $q->whereBetween('start_date', [$start, $end])
@@ -118,6 +125,7 @@ class LeaveController extends Controller
 
         $balances = LeaveBalance::with('employee')
             ->where('year', $start->year)
+            ->when(!$user->isAdmin(), fn($q) => $q->whereHas('employee', fn($sq) => $sq->where('site_id', $user->site_id)))
             ->get();
 
         return view('leaves.calendar', compact('leaves', 'month', 'balances'));

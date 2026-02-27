@@ -102,6 +102,7 @@
                             </th>
                         @endforeach
                         <th class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Departemen</th>
+                        <th class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Unit / Site</th>
                         <th class="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Masa Kerja</th>
                         <th class="px-5 py-3"></th>
                     </tr>
@@ -126,6 +127,18 @@
                             </td>
                             <td class="whitespace-nowrap px-5 py-3.5 text-gray-600">{{ $employee->join_date->format('d M Y') }}</td>
                             <td class="whitespace-nowrap px-5 py-3.5 text-gray-500">{{ $employee->department?->name }}</td>
+                            <td class="whitespace-nowrap px-5 py-3.5">
+                                @if($employee->site)
+                                    <span class="inline-flex items-center gap-1.5 text-gray-700 bg-gray-50 border border-gray-200 px-2 py-1 rounded-md text-xs font-medium shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                        {{ $employee->site->name }}
+                                    </span>
+                                @else
+                                    <span class="text-xs text-gray-400 italic">—</span>
+                                @endif
+                            </td>
                             <td class="whitespace-nowrap px-5 py-3.5">
                                 @php
                                     $tenureMonths = $employee->tenure_months;

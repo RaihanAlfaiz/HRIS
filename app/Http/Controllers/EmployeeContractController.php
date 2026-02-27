@@ -13,6 +13,8 @@ class EmployeeContractController extends Controller
      */
     public function store(Request $request, Employee $employee)
     {
+        auth()->user()->authorizeSiteAccess($employee);
+        
         $validated = $request->validate([
             'contract_number' => ['nullable', 'string', 'max:100'],
             'contract_type'   => ['required', 'string', 'in:PKWT,PKWTT,Addendum'],
@@ -31,6 +33,8 @@ class EmployeeContractController extends Controller
      */
     public function update(Request $request, Employee $employee, EmployeeContract $contract)
     {
+        auth()->user()->authorizeSiteAccess($employee);
+        
         if ($contract->employee_id !== $employee->id) {
             abort(403);
         }
@@ -53,6 +57,8 @@ class EmployeeContractController extends Controller
      */
     public function destroy(Employee $employee, EmployeeContract $contract)
     {
+        auth()->user()->authorizeSiteAccess($employee);
+        
         if ($contract->employee_id !== $employee->id) {
             abort(403);
         }

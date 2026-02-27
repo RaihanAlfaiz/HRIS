@@ -25,6 +25,8 @@ class EmployeeDocumentController extends Controller
      */
     public function store(Request $request, Employee $employee)
     {
+        auth()->user()->authorizeSiteAccess($employee);
+        
         $documentType = $request->input('document_type');
 
         // Validate base fields
@@ -75,6 +77,8 @@ class EmployeeDocumentController extends Controller
      */
     public function download(Employee $employee, EmployeeDocument $document)
     {
+        auth()->user()->authorizeSiteAccess($employee);
+        
         // Ensure document belongs to this employee
         if ($document->employee_id !== $employee->id) {
             abort(403);
@@ -92,6 +96,8 @@ class EmployeeDocumentController extends Controller
      */
     public function destroy(Employee $employee, EmployeeDocument $document)
     {
+        auth()->user()->authorizeSiteAccess($employee);
+        
         // Ensure document belongs to this employee
         if ($document->employee_id !== $employee->id) {
             abort(403);

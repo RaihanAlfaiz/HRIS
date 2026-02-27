@@ -19,6 +19,7 @@ class EmployeesExport implements FromQuery, WithHeadings, WithMapping, WithStyle
         protected ?string $search = null,
         protected ?string $departmentId = null,
         protected ?string $status = null,
+        protected ?int $siteId = null,
     ) {}
 
     /**
@@ -27,6 +28,10 @@ class EmployeesExport implements FromQuery, WithHeadings, WithMapping, WithStyle
     public function query()
     {
         $query = Employee::with(['department', 'profile', 'contact', 'financial']);
+
+        if ($this->siteId) {
+            $query->where('site_id', $this->siteId);
+        }
 
         if ($this->search) {
             $query->where(function ($q) {

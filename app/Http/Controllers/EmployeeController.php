@@ -20,7 +20,7 @@ class EmployeeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Employee::with('department');
+        $query = auth()->user()->scopedEmployeeQuery()->with(['department', 'site']);
 
         // ── Instant search (full_name, nip, position) ──
         if ($search = $request->input('search')) {
@@ -101,6 +101,7 @@ class EmployeeController extends Controller
      */
     public function show(Employee $employee)
     {
+        auth()->user()->authorizeSiteAccess($employee);
         $employee->load([
             'department', 'site', 'profile', 'contact', 'documents', 'financial',
             'contracts' => fn($q) => $q->orderByDesc('end_date'),
@@ -115,6 +116,7 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee)
     {
+        auth()->user()->authorizeSiteAccess($employee);
         $employee->load(['profile', 'contact', 'financial']);
         $departments = Department::orderBy('name')->get();
         $sites = Site::orderBy('name')->get();
@@ -127,6 +129,7 @@ class EmployeeController extends Controller
      */
     public function update(Request $request, Employee $employee)
     {
+        auth()->user()->authorizeSiteAccess($employee);
         $validated = $this->validateEmployee($request, $employee->id);
 
         DB::transaction(function () use ($validated, $employee) {
@@ -164,6 +167,7 @@ class EmployeeController extends Controller
      */
     public function destroy(Employee $employee)
     {
+        auth()->user()->authorizeSiteAccess($employee);
         DB::transaction(function () use ($employee) {
             // Delete document files from storage
             foreach ($employee->documents as $doc) {
@@ -228,6 +232,11 @@ class EmployeeController extends Controller
             'bank_name'              => ['nullable', 'string', 'max:50'],
             'bank_account_number'    => ['nullable', 'string', 'max:50'],
         ]);
+
+        // Security check: Force site_id to user's site if not an admin (prevent HTTP request manipulation)
+        if (!auth()->user()->isAdmin()) {
+            $data['site_id'] = auth()->user()->site_id;
+        }
 
         return [
             'employee' => array_intersect_key($data, array_flip([

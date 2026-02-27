@@ -10,7 +10,12 @@ class EmployeeHistoryController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = EmployeeHistory::with(['employee', 'changedByUser'])->latest();
+
+        if (!$user->isAdmin()) {
+            $query->whereHas('employee', fn($q) => $q->where('site_id', $user->site_id));
+        }
 
         if ($request->filled('employee_id')) {
             $query->where('employee_id', $request->employee_id);
@@ -21,7 +26,7 @@ class EmployeeHistoryController extends Controller
         }
 
         $histories = $query->paginate(30);
-        $employees = Employee::orderBy('full_name')->get();
+        $employees = auth()->user()->scopedEmployeeQuery()->orderBy('full_name')->get();
 
         return view('histories.index', compact('histories', 'employees'));
     }
@@ -35,6 +40,9 @@ class EmployeeHistoryController extends Controller
             'new_value'   => 'nullable|string|max:500',
             'description' => 'required|string|max:1000',
         ]);
+
+        $employee = Employee::findOrFail($validated['employee_id']);
+        auth()->user()->authorizeSiteAccess($employee);
 
         $validated['changed_by'] = auth()->id();
 

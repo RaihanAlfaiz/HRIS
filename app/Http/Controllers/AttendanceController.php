@@ -30,7 +30,7 @@ class AttendanceController extends Controller
                 ->first();
         }
 
-        $employees = Employee::with([
+        $employees = auth()->user()->scopedEmployeeQuery()->with([
             'department', 'defaultShift',
             'attendances' => fn($q) => $q->where('date', $date)->with('shift'),
         ])->orderBy('full_name')->get();
@@ -242,7 +242,7 @@ class AttendanceController extends Controller
             $shift = WorkShift::where('is_default', true)->first();
         }
 
-        $employees = Employee::pluck('id');
+        $employees = auth()->user()->scopedEmployeeQuery()->pluck('id');
 
         foreach ($employees as $empId) {
             Attendance::updateOrCreate(
@@ -274,7 +274,7 @@ class AttendanceController extends Controller
         $daysInMonth = $startDate->daysInMonth;
 
         // Filter by employee or department
-        $query = Employee::with([
+        $query = auth()->user()->scopedEmployeeQuery()->with([
             'department',
             'attendances' => fn($q) => $q->whereBetween('date', [$startDate, $endDate]),
         ]);
@@ -312,7 +312,7 @@ class AttendanceController extends Controller
         });
 
         $departments = \App\Models\Department::orderBy('name')->get();
-        $allEmployees = Employee::orderBy('full_name')->get();
+        $allEmployees = auth()->user()->scopedEmployeeQuery()->orderBy('full_name')->get();
 
         return view('attendances.recap', compact(
             'recap', 'month', 'daysInMonth', 'departments', 'allEmployees'
@@ -326,15 +326,20 @@ class AttendanceController extends Controller
     {
         $status = $request->input('status', 'pending');
 
+        $user = auth()->user();
         $query = Attendance::with(['employee.department', 'shift', 'overtimeApprover'])
             ->where('overtime_minutes', '>', 0);
+
+        if (!$user->isAdmin()) {
+            $query->whereHas('employee', fn($q) => $q->where('site_id', $user->site_id));
+        }
 
         if ($status && in_array($status, ['pending', 'approved', 'rejected'])) {
             $query->where('overtime_status', $status);
         }
 
         $overtimes = $query->latest('date')->paginate(20);
-        $pendingCount = Attendance::where('overtime_status', 'pending')->count();
+        $pendingCount = auth()->user()->scopedAttendanceQuery()->where('overtime_status', 'pending')->count();
 
         return view('attendances.overtime', compact('overtimes', 'status', 'pendingCount'));
     }
@@ -344,6 +349,8 @@ class AttendanceController extends Controller
      */
     public function approveOvertime(Attendance $attendance)
     {
+        auth()->user()->authorizeSiteAccess($attendance);
+
         if ($attendance->overtime_status !== 'pending') {
             return back()->with('error', 'Lembur ini sudah diproses.');
         }
@@ -361,6 +368,8 @@ class AttendanceController extends Controller
      */
     public function rejectOvertime(Attendance $attendance)
     {
+        auth()->user()->authorizeSiteAccess($attendance);
+
         if ($attendance->overtime_status !== 'pending') {
             return back()->with('error', 'Lembur ini sudah diproses.');
         }
@@ -379,17 +388,24 @@ class AttendanceController extends Controller
      */
     public function corrections(Request $request)
     {
+        $user = auth()->user();
         $query = AttendanceCorrection::with([
             'attendance.employee.department',
             'requester', 'approver',
         ])->latest();
+
+        if (!$user->isAdmin()) {
+            $query->whereHas('attendance.employee', fn($q) => $q->where('site_id', $user->site_id));
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         $corrections = $query->paginate(20);
-        $pendingCount = AttendanceCorrection::where('status', 'pending')->count();
+        $pendingCount = AttendanceCorrection::where('status', 'pending')
+            ->when(!auth()->user()->isAdmin(), fn($q) => $q->whereHas('attendance.employee', fn($sq) => $sq->where('site_id', auth()->user()->site_id)))
+            ->count();
 
         return view('attendances.corrections', compact('corrections', 'pendingCount'));
     }
@@ -408,6 +424,7 @@ class AttendanceController extends Controller
         ]);
 
         $attendance = Attendance::findOrFail($validated['attendance_id']);
+        auth()->user()->authorizeSiteAccess($attendance);
 
         AttendanceCorrection::create([
             'attendance_id'       => $attendance->id,
@@ -428,6 +445,8 @@ class AttendanceController extends Controller
      */
     public function approveCorrection(AttendanceCorrection $correction)
     {
+        auth()->user()->authorizeSiteAccess($correction->attendance);
+
         if ($correction->status !== 'pending') {
             return back()->with('error', 'Koreksi ini sudah diproses.');
         }
@@ -486,6 +505,8 @@ class AttendanceController extends Controller
      */
     public function rejectCorrection(Request $request, AttendanceCorrection $correction)
     {
+        auth()->user()->authorizeSiteAccess($correction->attendance);
+
         if ($correction->status !== 'pending') {
             return back()->with('error', 'Koreksi ini sudah diproses.');
         }

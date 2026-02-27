@@ -7,14 +7,20 @@ use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
-    /**
-     * Display all departments.
-     */
     public function index()
     {
-        $departments = Department::withCount('employees')
-            ->orderBy('name')
-            ->paginate(15);
+        $user = auth()->user();
+        $query = Department::query();
+
+        if (!$user->isAdmin()) {
+            $query->withCount(['employees' => function($q) use ($user) {
+                $q->where('site_id', $user->site_id);
+            }]);
+        } else {
+            $query->withCount('employees');
+        }
+
+        $departments = $query->orderBy('name')->paginate(15);
 
         return view('departments.index', compact('departments'));
     }

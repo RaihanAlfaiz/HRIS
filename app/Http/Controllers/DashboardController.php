@@ -14,62 +14,83 @@ class DashboardController extends Controller
 {
     /**
      * Show the dashboard with summary statistics.
+     * Scoped to user's site (admin sees all).
      */
     public function index()
     {
-        $totalEmployees = Employee::count();
+        $user = auth()->user();
+        $employeeQuery = $user->scopedEmployeeQuery();
+
+        $totalEmployees = (clone $employeeQuery)->count();
         $totalDepartments = Department::count();
         $totalSites = Site::count();
 
-        $statusCounts = Employee::selectRaw('employment_status, COUNT(*) as total')
+        $statusCounts = (clone $employeeQuery)->selectRaw('employment_status, COUNT(*) as total')
             ->groupBy('employment_status')
             ->pluck('total', 'employment_status');
 
-        $departmentCounts = Department::withCount('employees')
-            ->orderByDesc('employees_count')
-            ->limit(10)
-            ->get();
+        // Department counts — scoped to site
+        if ($user->isAdmin()) {
+            $departmentCounts = Department::withCount('employees')
+                ->orderByDesc('employees_count')
+                ->limit(10)
+                ->get();
+        } else {
+            $departmentCounts = Department::withCount(['employees' => fn($q) => $q->where('site_id', $user->site_id)])
+                ->having('employees_count', '>', 0)
+                ->orderByDesc('employees_count')
+                ->limit(10)
+                ->get();
+        }
 
-        $siteCounts = Site::withCount('employees')
-            ->orderByDesc('employees_count')
-            ->limit(10)
-            ->get();
+        // Site counts — only for admin (they see all sites)
+        $siteCounts = $user->isAdmin()
+            ? Site::withCount('employees')->orderByDesc('employees_count')->limit(10)->get()
+            : collect();
 
-        $recentEmployees = Employee::with('department')
+        $recentEmployees = (clone $employeeQuery)->with('department')
             ->latest()
             ->limit(5)
             ->get();
 
-        // Contracts expiring within 30 days
+        // Contracts expiring within 30 days — scoped to site
         $expiringContracts = EmployeeContract::with('employee.site')
+            ->whereHas('employee', function ($q) use ($user) {
+                if (!$user->isAdmin()) {
+                    $q->where('site_id', $user->site_id);
+                }
+            })
             ->where('end_date', '>=', now())
             ->where('end_date', '<=', now()->addDays(30))
             ->orderBy('end_date')
             ->limit(10)
             ->get();
 
-        // Today's attendance summary
+        // Today's attendance summary — scoped to site
         $todayDate = now()->toDateString();
-        $todayPresent = Attendance::where('date', $todayDate)->whereIn('status', ['present', 'late'])->count();
-        $todayLate    = Attendance::where('date', $todayDate)->where('status', 'late')->count();
-        $todayAbsent  = $totalEmployees - Attendance::where('date', $todayDate)->count();
+        $attendanceQuery = $user->scopedAttendanceQuery()->where('date', $todayDate);
+        $todayPresent = (clone $attendanceQuery)->whereIn('status', ['present', 'late'])->count();
+        $todayLate    = (clone $attendanceQuery)->where('status', 'late')->count();
+        $todayAbsent  = $totalEmployees - (clone $attendanceQuery)->count();
 
-        // Pending leaves
-        $pendingLeaves = Leave::with('employee')
+        // Pending leaves — scoped to site
+        $leaveBaseQuery = $user->scopedLeaveQuery();
+        $pendingLeaves = (clone $leaveBaseQuery)->with('employee')
             ->where('status', 'pending')
             ->latest()
             ->limit(5)
             ->get();
-        $pendingLeavesCount = Leave::where('status', 'pending')->count();
+        $pendingLeavesCount = (clone $leaveBaseQuery)->where('status', 'pending')->count();
 
-        // Active announcements
+        // Active announcements (global — no site scoping)
         $announcements = Announcement::active()
             ->latest()
             ->limit(3)
             ->get();
 
-        // Birthday this month
-        $birthdayEmployees = Employee::whereHas('profile', function ($q) {
+        // Birthday this month — scoped to site
+        $birthdayQuery = (clone $employeeQuery);
+        $birthdayEmployees = $birthdayQuery->whereHas('profile', function ($q) {
             $q->whereMonth('date_of_birth', now()->month);
         })->with('profile')->limit(5)->get();
 

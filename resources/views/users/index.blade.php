@@ -44,8 +44,9 @@
                             <th class="px-5 py-3.5 font-semibold text-gray-600 w-8">#</th>
                             <th class="px-5 py-3.5 font-semibold text-gray-600">Username</th>
                             <th class="px-5 py-3.5 font-semibold text-gray-600">Nama</th>
-                            <th class="px-5 py-3.5 font-semibold text-gray-600">Role</th>
-                            <th class="px-5 py-3.5 font-semibold text-gray-600">Karyawan Terhubung</th>
+                            <th class="px-5 py-3.5 font-semibold text-gray-600 font-medium">Role</th>
+                            <th class="px-5 py-3.5 font-semibold text-gray-600 font-medium text-xs uppercase tracking-wider">Unit / Site</th>
+                            <th class="px-5 py-3.5 font-semibold text-gray-600 font-medium">Karyawan Terhubung</th>
                             <th class="px-5 py-3.5 font-semibold text-gray-600 text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -80,6 +81,18 @@
                                 <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $roleColors[$user->role] ?? '' }}">
                                     {{ ucfirst($user->role) }}
                                 </span>
+                            </td>
+                            <td class="px-5 py-3.5">
+                                @if($user->site)
+                                    <span class="inline-flex items-center gap-1.5 text-gray-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                        {{ $user->site->name }}
+                                    </span>
+                                @else
+                                    <span class="text-xs font-medium text-gray-400 bg-gray-50 px-2 py-1 rounded">Semua / Global</span>
+                                @endif
                             </td>
                             <td class="px-5 py-3.5">
                                 @if($user->employee)

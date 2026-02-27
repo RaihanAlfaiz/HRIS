@@ -12,19 +12,21 @@ class PayrollController extends Controller
     {
         $period = $request->input('period', now()->format('Y-m'));
 
-        $payrolls = Payroll::with('employee.department')
+        $user = auth()->user();
+
+        $payrolls = $user->scopedPayrollQuery()->with('employee.department')
             ->where('period', $period)
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        $totalNetSalary = Payroll::where('period', $period)->sum('net_salary');
+        $totalNetSalary = (clone $user->scopedPayrollQuery())->where('period', $period)->sum('net_salary');
 
         return view('payrolls.index', compact('payrolls', 'period', 'totalNetSalary'));
     }
 
     public function create()
     {
-        $employees = Employee::orderBy('full_name')->get();
+        $employees = auth()->user()->scopedEmployeeQuery()->orderBy('full_name')->get();
         $period    = now()->format('Y-m');
         return view('payrolls.create', compact('employees', 'period'));
     }
@@ -56,6 +58,9 @@ class PayrollController extends Controller
         $validated['net_salary']      = $validated['total_earning'] - $validated['total_deduction'];
 
         // Check duplicate
+        $employee = Employee::findOrFail($validated['employee_id']);
+        auth()->user()->authorizeSiteAccess($employee);
+
         $exists = Payroll::where('employee_id', $validated['employee_id'])
             ->where('period', $validated['period'])
             ->exists();
@@ -72,12 +77,14 @@ class PayrollController extends Controller
 
     public function show(Payroll $payroll)
     {
+        auth()->user()->authorizeSiteAccess($payroll);
         $payroll->load('employee.department');
         return view('payrolls.show', compact('payroll'));
     }
 
     public function destroy(Payroll $payroll)
     {
+        auth()->user()->authorizeSiteAccess($payroll);
         $period = $payroll->period;
         $payroll->delete();
         return redirect()->route('payrolls.index', ['period' => $period])
@@ -89,6 +96,7 @@ class PayrollController extends Controller
      */
     public function print(Payroll $payroll)
     {
+        auth()->user()->authorizeSiteAccess($payroll);
         $payroll->load('employee.department');
         return view('payrolls.print', compact('payroll'));
     }

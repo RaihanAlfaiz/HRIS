@@ -8,12 +8,16 @@ use Illuminate\Http\Request;
 
 class SiteController extends Controller
 {
-    /**
-     * Display all sites with employee counts and expiring contracts.
-     */
     public function index()
     {
-        $sites = Site::withCount('employees')
+        $user = auth()->user();
+        $query = Site::query();
+
+        if (!$user->isAdmin()) {
+            $query->where('id', $user->site_id);
+        }
+
+        $sites = $query->withCount('employees')
             ->orderBy('name')
             ->paginate(15);
 

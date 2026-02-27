@@ -20,6 +20,7 @@ class ExportController extends Controller
                 search: $request->input('search'),
                 departmentId: $request->input('department_id'),
                 status: $request->input('employment_status'),
+                siteId: auth()->user()->isAdmin() ? null : auth()->user()->site_id,
             ),
             $filename
         );

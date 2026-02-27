@@ -13,6 +13,8 @@ class EmployeeKpiController extends Controller
      */
     public function store(Request $request, Employee $employee)
     {
+        auth()->user()->authorizeSiteAccess($employee);
+        
         $validated = $request->validate([
             'period'      => ['required', 'string', 'max:20'],
             'score'       => ['required', 'numeric', 'min:0', 'max:100'],
@@ -31,6 +33,8 @@ class EmployeeKpiController extends Controller
      */
     public function destroy(Employee $employee, EmployeeKpi $kpi)
     {
+        auth()->user()->authorizeSiteAccess($employee);
+        
         if ($kpi->employee_id !== $employee->id) {
             abort(403);
         }

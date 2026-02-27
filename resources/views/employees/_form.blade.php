@@ -66,14 +66,24 @@
                 @error('employment_status') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label for="site_id" class="block text-sm font-medium text-gray-700">Site / Area Penempatan</label>
-                <select id="site_id" name="site_id" data-placeholder="Pilih Site"
-                        class="select-search mt-1.5 block w-full">
-                    <option value=""></option>
-                    @foreach($sites as $site)
-                        <option value="{{ $site->id }}" {{ old('site_id', $employee?->site_id) == $site->id ? 'selected' : '' }}>{{ $site->code }} — {{ $site->name }}</option>
-                    @endforeach
-                </select>
+                <label for="site_id" class="block text-sm font-medium text-gray-700">Site / Area Penempatan <span class="text-red-500">*</span></label>
+                @if(auth()->user()->isAdmin())
+                    <select id="site_id" name="site_id" required data-placeholder="Pilih Site"
+                            class="select-search mt-1.5 block w-full">
+                        <option value=""></option>
+                        @foreach($sites as $site)
+                            <option value="{{ $site->id }}" {{ old('site_id', $employee?->site_id) == $site->id ? 'selected' : '' }}>{{ $site->code }} — {{ $site->name }}</option>
+                        @endforeach
+                    </select>
+                @else
+                    <div class="mt-1.5 p-2.5 bg-gray-100 rounded-xl border border-gray-200 text-sm text-gray-600 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        {{ auth()->user()->site->name ?? 'Site Terkunci' }}
+                        <input type="hidden" name="site_id" value="{{ auth()->user()->site_id }}">
+                    </div>
+                @endif
                 @error('site_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
             <div>
